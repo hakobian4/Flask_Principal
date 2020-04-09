@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Evaluation</h1>
+  <h4>Now You can starts evaluation.</h4>
+  {% from "includes/_formhelpers.html" import render_field %}
+  <form method="POST" action="">
+    <div class="form-group">
+      {{ render_field(form.condition, class_="form-control") }}
+      <br>
+      {{ render_field(form.district, class_="form-control") }}
+      <br>
+      {{ render_field(form.max_floor, class_="form-control") }}
+      <br>
+      {{ render_field(form.street, class_="form-control") }}
+      <br>
+      {{ render_field(form.num_rooms, class_="form-control") }}
+      <br>
+      {{ render_field(form.area, class_="form-control") }}
+      <br>
+      {{ render_field(form.building_type, class_="form-control") }}
+      <br>
+      {{ render_field(form.floor, class_="form-control") }}
+      <br>
+      {{ render_field(form.ceiling_height, class_="form-control") }}
+    </div>
+    <p><input class="btn btn-primary" type="submit" value="Submit">
+  </form>
+{% endblock %}

@@ -1,7 +1,7 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 # from data import Articles
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
+from wtforms import Form, StringField, TextAreaField, IntegerField, FloatField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 
@@ -160,10 +160,45 @@ def logout():
     return redirect(url_for('login'))
 
 
+# Evaluation Form Class
+class EvaluationForm(Form):
+    condition = StringField('Condition', [validators.Length(min = 3, max = 30)])
+    district = StringField('District', [validators.Length(min = 3, max = 30)])
+    max_floor = IntegerField('Max Floor', [validators.Length(min = 1, max = 3)])
+    street = StringField('street', [validators.Length(min = 3, max = 40)])
+    num_rooms = IntegerField('Number of Rooms', [validators.Length(min = 1, max = 3)])
+    area = IntegerField('Area', [validators.Length(min = 1, max = 5)])
+    building_type = StringField('Building Type', [validators.Length(min = 3, max = 30)])
+    floor = IntegerField('Floor', [validators.Length(min = 1, max = 3)])
+    ceiling_height = FloatField('Ceiling Height', [validators.Length(min = 1, max = 10)])
+
+
+# Evaluation
+@app.route('/evaluation', methods = ['GET', 'POST'])
+@is_logged_in
+def evaluation():
+    form = EvaluationForm(request.form)
+    if request.method == 'POST' and form.validate():
+        condition = form.condition.data
+        district = form.district.data
+        max_floor = form.max_floor.data
+        street = form.street.data
+        num_rooms = form.num_rooms.data
+        area = form.area.data
+        building_type = form.building_type.data
+        floor = form.floor.data
+        ceiling_height = form.ceiling_height.data
+
+
+        #To be continued
+
+    return render_template('evaluation.html', form = form)
+
 # Dashboard
 @app.route('/dashboard')
 @is_logged_in
 def dashboard():
+
     # Create cursor
     cur = mysql.connection.cursor()
 
@@ -213,6 +248,68 @@ def add_article():
         return redirect(url_for('dashboard'))
 
     return render_template('add_article.html', form = form)
+
+# Edit Article
+@app.route('/edit_article/<id>', methods = ['GET', 'POST'])
+@is_logged_in
+def edit_article(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+
+    # Get article by id
+    result = cur.execute("SELECT * FROM articles WHERE id = %s", [id])
+
+    article = cur.fetchone()
+
+    # Get form
+    form = ArticleForm(request.form)
+
+    # Populate article form fields
+    form.title.data = article['title']
+    form.body.data = article['body']
+
+    if request.method == 'POST' and form.validate():
+        title = request.form['title']
+        body = request.form['body']
+
+        # Create Cursor
+        cur = mysql.connection.cursor()
+
+        # Execute
+        cur.execute("UPDATE articles SET title = %s, body = %s WHERE id = %s", (title, body, id))
+
+        # Commit to DB
+        mysql.connection.commit()
+
+        # Close Connection
+        cur.close()
+
+        flash('Article Updated', 'success')
+
+        return redirect(url_for('dashboard'))
+
+    return render_template('edit_article.html', form = form)
+
+
+# Delete Article
+@app.route('/delete_article/<id>', methods = ['POST'])
+@is_logged_in
+def delete_article(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+
+    # Execute
+    cur.execute("DELETE FROM articles WHERE id = %s", [id])
+
+    # Commit to DB
+    mysql.connection.commit()
+
+    # Close Connection
+    cur.close()
+
+    flash('Article Deleted', 'success')
+
+    return redirect(url_for('dashboard'))
 
 
 if __name__ == '__main__':

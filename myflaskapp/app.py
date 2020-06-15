@@ -4,6 +4,7 @@ from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, IntegerField, FloatField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
+from dataset import Data
 
 app = Flask(__name__)
 
@@ -65,8 +66,8 @@ def article(id):
 # Register Form Class
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min = 1, max = 50)])
-    username = StringField('Username', [validators.Length(min = 4, max = 25)])
-    email = StringField('Email', [validators.Length(min = 6, max = 50)])
+    lastname = StringField('Last Name', [validators.Length(min = 4, max = 25)])
+    email = StringField('Email', [validators.Length(min = 6, max = 50), validators.Email()])
     password = PasswordField('Password', [
         validators.DataRequired(),
         validators.EqualTo('confirm', message = 'Passwords do not match')
@@ -80,14 +81,14 @@ def register():
     if request.method == 'POST' and form.validate():
         name = form.name.data
         email = form.email.data
-        username = form.username.data
+        lastname = form.lastname.data
         password = sha256_crypt.encrypt(str(form.password.data))
 
         # Create cursor
         cur = mysql.connection.cursor()
 
         # Execute query
-        cur.execute("INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)", (name, email, username, password))
+        cur.execute("INSERT INTO users(name, email, lastname, password) VALUES(%s, %s, %s, %s)", (name, email, lastname, password))
 
         # Commit to DB
         mysql.connection.commit()
@@ -107,14 +108,14 @@ def register():
 def login():
     if request.method == 'POST':
         # Get Form Fields
-        username = request.form['username']
+        email = request.form['email']
         password_candidate = request.form['password']
 
         # Create cursor 
         cur = mysql.connection.cursor()
 
         # Get user by username
-        result = cur.execute("SELECT * FROM users WHERE username = %s", [username])
+        result = cur.execute("SELECT * FROM users WHERE email = %s", [email])
 
         if result > 0:
             # Get stored hash
@@ -125,7 +126,7 @@ def login():
             if sha256_crypt.verify(password_candidate, password):
                 # Passed
                 session['logged_in'] = True
-                session['username'] = username
+                session['email'] = email
 
                 flash('You are now logged in', 'success')
                 return redirect(url_for('dashboard'))
@@ -135,7 +136,7 @@ def login():
             # Close connection
             cur.close()
         else:
-            error = 'Username not found'
+            error = 'Email not found'
             return render_template('login.html', error = error)
 
     return render_template('login.html')
@@ -177,27 +178,27 @@ class EvaluationForm(Form):
 @app.route('/evaluation', methods = ['GET', 'POST'])
 @is_logged_in
 def evaluation():
+    
     form = EvaluationForm(request.form)
-    if request.method == 'POST' and form.validate():
-        condition = form.condition.data
-        district = form.district.data
-        max_floor = form.max_floor.data
-        street = form.street.data
-        num_rooms = form.num_rooms.data
-        area = form.area.data
-        building_type = form.building_type.data
-        floor = form.floor.data
-        ceiling_height = form.ceiling_height.data
+    
+    datas = Data()
+    streets = datas.columns_name('streets')
+    districts = datas.columns_name('districts')
+    max_floors = datas.columns_name('max_floor')
+    conditions = datas.columns_name('conditions')
+    num_rooms = datas.columns_name('num_rooms')
+    building_types = datas.columns_name('building_type')
+    ceiling_heights = datas.columns_name('ceiling_height')
 
+    return render_template('evaluation.html', ceiling_heights = ceiling_heights, streets = streets, districts = districts, max_floors = max_floors, conditions = conditions, num_rooms = num_rooms, building_types = building_types, form = form)
+  
 
-        #To be continued
-
-    return render_template('evaluation.html', form = form)
 
 # Dashboard
-@app.route('/dashboard')
+@app.route('/dashboard', methods = ['GET', 'POST'])
 @is_logged_in
 def dashboard():
+
 
     # Create cursor
     cur = mysql.connection.cursor()
@@ -235,7 +236,7 @@ def add_article():
         cur = mysql.connection.cursor()
 
         # Execute
-        cur.execute("INSERT INTO articles(title, body, author) VALUES(%s, %s, %s)", (title, body, session['username']))
+        cur.execute("INSERT INTO articles(title, body, author) VALUES(%s, %s, %s)", (title, body, session['email']))
 
         # Commit to DB
         mysql.connection.commit()
@@ -314,4 +315,4 @@ def delete_article(id):
 
 if __name__ == '__main__':
     app.secret_key = 'secret123'
-    app.run(debug = True)
+    app.run(use_reloader = True, debug = True)

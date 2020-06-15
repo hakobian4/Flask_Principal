@@ -3,10 +3,81 @@
 {% block body %}
   <h1>Evaluation</h1>
   <h4>Now You can starts evaluation.</h4>
+  
   {% from "includes/_formhelpers.html" import render_field %}
   <form method="POST" action="">
     <div class="form-group">
-      {{ render_field(form.condition, class_="form-control") }}
+
+      <small>Region</small>
+      <select id="region">
+        <option value="Yerevan">Yerevan</option>
+      </select>
+      <br>
+      <small>District</small>
+      <select id="district">
+        {% for district in districts %}
+          <option value="{{district}}">{{district}}</option>
+        {% endfor %}
+      </select>
+      <br>
+      <small>Street</small>
+      <select id="street">
+        {% for street in streets %}
+          <option value="{{street}}">{{street}}</option>
+        {% endfor %}
+      </select>
+      <br>
+      <small>Maximum Number of Floors</small>
+      <select id="max_floor">
+        {% for max_floor in max_floors %}
+          <option value="{{max_floor}}">{{max_floor}}</option>
+        {% endfor %}
+      </select>
+      <br>
+      <small>Building Type</small>
+      <select id="building_type">
+        {% for building_type in building_types %}
+          <option value="{{building_type}}">{{building_type}}</option>
+        {% endfor %}
+      </select>
+      <br>
+      <small>Area</small>
+      <select id="areas">
+        {% for area in range(25, 161) %}
+          <option value="{{area}}">{{area}}</option>
+        {% endfor %}
+      </select>
+      <br>
+      <small>Condition</small>
+      <select id="condition">
+        {% for condition in conditions %}
+          <option value="{{condition}}">{{condition}}</option>
+        {% endfor %}
+      </select>
+      <br>
+      <small>Floor</small>
+      <select id="floor">
+        {% for max_floor in max_floors %}
+          <option value="{{max_floor}}">{{max_floor}}</option>
+        {% endfor %}
+      </select>
+      <br>
+      <small>Number of Rooms</small>
+      <select id="num_rooms">
+        {% for num_room in num_rooms %}
+          <option value="{{num_room}}">{{num_room}}</option>
+        {% endfor %}
+      </select>
+      <br>
+      <small>Ceiling Height</small>
+      <select id="ceiling_height">
+        {% for ceiling_height in ceiling_heights %}
+          <option value="{{ceiling_height}}">{{ceiling_height}}</option>
+        {% endfor %}
+      </select>
+
+
+      <!-- {{ render_field(form.condition, class_="form-control") }}
       <br>
       {{ render_field(form.district, class_="form-control") }}
       <br>
@@ -22,8 +93,8 @@
       <br>
       {{ render_field(form.floor, class_="form-control") }}
       <br>
-      {{ render_field(form.ceiling_height, class_="form-control") }}
+      {{ render_field(form.ceiling_height, class_="form-control") }} -->
     </div>
-    <p><input class="btn btn-primary" type="submit" value="Submit">
+    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
   </form>
 {% endblock %}

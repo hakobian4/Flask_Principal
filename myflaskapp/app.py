@@ -1,10 +1,10 @@
-from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
+from flask import Flask, render_template, flash, redirect, url_for, session, request, logging, jsonify
 # from data import Articles
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, IntegerField, FloatField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
-from dataset import Data
+from dataset import Crdata
 
 app = Flask(__name__)
 
@@ -17,9 +17,6 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 # init MySQL
 mysql = MySQL(app)
-
-
-# Articles = Articles()
 
 # Index
 @app.route('/')
@@ -163,36 +160,54 @@ def logout():
 
 # Evaluation Form Class
 class EvaluationForm(Form):
-    condition = StringField('Condition', [validators.Length(min = 3, max = 30)])
-    district = StringField('District', [validators.Length(min = 3, max = 30)])
-    max_floor = IntegerField('Max Floor', [validators.Length(min = 1, max = 3)])
-    street = StringField('street', [validators.Length(min = 3, max = 40)])
+    conditions = StringField('Condition', [validators.Length(min = 3, max = 30)])
+    districts = StringField('District', [validators.Length(min = 3, max = 30)])
+    max_floors = IntegerField('Max Floor', [validators.Length(min = 1, max = 3)])
+    streets = StringField('street', [validators.Length(min = 3, max = 40)])
     num_rooms = IntegerField('Number of Rooms', [validators.Length(min = 1, max = 3)])
-    area = IntegerField('Area', [validators.Length(min = 1, max = 5)])
-    building_type = StringField('Building Type', [validators.Length(min = 3, max = 30)])
-    floor = IntegerField('Floor', [validators.Length(min = 1, max = 3)])
-    ceiling_height = FloatField('Ceiling Height', [validators.Length(min = 1, max = 10)])
+    areas = IntegerField('Area', [validators.Length(min = 1, max = 5)])
+    building_types = StringField('Building Type', [validators.Length(min = 3, max = 30)])
+    floors = IntegerField('Floor', [validators.Length(min = 1, max = 3)])
+    ceiling_heights = FloatField('Ceiling Height', [validators.Length(min = 1, max = 10)])
+    answer = IntegerField('Answer', [validators.Length(min=5, max=7)])
 
 
-# Evaluation
-@app.route('/evaluation', methods = ['GET', 'POST'])
+# Get House Parameters
+@app.route('/get/values', methods = ['GET', 'POST'])
 @is_logged_in
-def evaluation():
+def get_values():
     
     form = EvaluationForm(request.form)
     
-    datas = Data()
-    streets = datas.columns_name('streets')
-    districts = datas.columns_name('districts')
-    max_floors = datas.columns_name('max_floor')
-    conditions = datas.columns_name('conditions')
-    num_rooms = datas.columns_name('num_rooms')
-    building_types = datas.columns_name('building_type')
-    ceiling_heights = datas.columns_name('ceiling_height')
-
-    return render_template('evaluation.html', ceiling_heights = ceiling_heights, streets = streets, districts = districts, max_floors = max_floors, conditions = conditions, num_rooms = num_rooms, building_types = building_types, form = form)
+    datas = Crdata()
+    form.streets = datas.columns_name('streets')
+    form.districts = datas.columns_name('districts')
+    form.max_floors = datas.columns_name('max_floor')
+    form.conditions = datas.columns_name('conditions')
+    form.num_rooms = datas.columns_name('num_rooms')
+    form.building_types = datas.columns_name('building_type')
+    form.ceiling_heights = datas.columns_name('ceiling_height')
+    form.floors = datas.columns_name('max_floor')
+    
+    return render_template('evaluation.html',  form = form)
   
 
+# Evaluation
+@app.route('/evaluation', methods = ['POST'])
+@is_logged_in
+def evaluation():
+
+    response = request.get_json()
+
+    # Create object
+    datas = Crdata()
+
+    house_price = datas.evaluation(response['district'], response['street'], response['maxFloor'], response['buildingType'], response['areas'], response['condition'], response['floor'], response['numRooms'], response['ceilingHeight'])
+
+    if house_price < 0:
+        return jsonify("Oops!!! House with such parameters doesn't exist.")
+    else:
+        return jsonify("Your perfect house PRICE is ${} (± $250)".format(house_price))
 
 # Dashboard
 @app.route('/dashboard', methods = ['GET', 'POST'])

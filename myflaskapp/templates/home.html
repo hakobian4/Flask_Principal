@@ -4,6 +4,14 @@
     <div class="jumbotron text-center">
         <h1>Welcome To My App</h1>
         <p class="lead">This application is built on the Python Flask framework and is the evaluation of houses</p>
+        <img src="https://cdn.dribbble.com/users/9969/screenshots/3625570/housebuild.gif">
+        <style>
+            img{
+                height: 60%;
+                width: 60%;
+            }
+        </style>
+        <br>
         {% if session.logged_in == NULL %}
             <a href="/register" class="btn btn-primary btn-lg">Register</a>
             <a href="/login" class="btn btn-success btn-lg">Login</a>

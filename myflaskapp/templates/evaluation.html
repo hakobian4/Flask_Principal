@@ -5,96 +5,163 @@
   <h4>Now You can starts evaluation.</h4>
   
   {% from "includes/_formhelpers.html" import render_field %}
-  <form method="POST" action="">
-    <div class="form-group">
-
+    <div class="opt">
+    <div>
+    <div class="params">
       <small>Region</small>
       <select id="region">
         <option value="Yerevan">Yerevan</option>
       </select>
-      <br>
+    </div>
+    <div class="params">
       <small>District</small>
       <select id="district">
-        {% for district in districts %}
+        {% for district in form.districts %}
           <option value="{{district}}">{{district}}</option>
         {% endfor %}
       </select>
-      <br>
+    </div>
+    <div class="params">
       <small>Street</small>
       <select id="street">
-        {% for street in streets %}
+        {% for street in form.streets %}
           <option value="{{street}}">{{street}}</option>
         {% endfor %}
       </select>
-      <br>
+    </div>  
+    <div class="params">
       <small>Maximum Number of Floors</small>
       <select id="max_floor">
-        {% for max_floor in max_floors %}
+        {% for max_floor in form.max_floors %}
           <option value="{{max_floor}}">{{max_floor}}</option>
         {% endfor %}
       </select>
-      <br>
+    </div>
+    <div class="params">
       <small>Building Type</small>
       <select id="building_type">
-        {% for building_type in building_types %}
+        {% for building_type in form.building_types %}
           <option value="{{building_type}}">{{building_type}}</option>
         {% endfor %}
       </select>
-      <br>
+    </div>
+    <div class="params">
       <small>Area</small>
       <select id="areas">
         {% for area in range(25, 161) %}
           <option value="{{area}}">{{area}}</option>
         {% endfor %}
       </select>
-      <br>
+    </div>
+    <div class="params">
       <small>Condition</small>
       <select id="condition">
-        {% for condition in conditions %}
+        {% for condition in form.conditions %}
           <option value="{{condition}}">{{condition}}</option>
         {% endfor %}
       </select>
-      <br>
+    </div>
+    <div class="params">
       <small>Floor</small>
       <select id="floor">
-        {% for max_floor in max_floors %}
-          <option value="{{max_floor}}">{{max_floor}}</option>
+        {% for floor in form.floors %}
+          <option value="{{floor}}">{{floor}}</option>
         {% endfor %}
       </select>
-      <br>
+    </div>
+    <div class="params">
       <small>Number of Rooms</small>
       <select id="num_rooms">
-        {% for num_room in num_rooms %}
+        {% for num_room in form.num_rooms %}
           <option value="{{num_room}}">{{num_room}}</option>
         {% endfor %}
       </select>
-      <br>
+    </div>
+    <div class="params">
       <small>Ceiling Height</small>
       <select id="ceiling_height">
-        {% for ceiling_height in ceiling_heights %}
+        {% for ceiling_height in form.ceiling_heights %}
           <option value="{{ceiling_height}}">{{ceiling_height}}</option>
         {% endfor %}
       </select>
-
-
-      <!-- {{ render_field(form.condition, class_="form-control") }}
-      <br>
-      {{ render_field(form.district, class_="form-control") }}
-      <br>
-      {{ render_field(form.max_floor, class_="form-control") }}
-      <br>
-      {{ render_field(form.street, class_="form-control") }}
-      <br>
-      {{ render_field(form.num_rooms, class_="form-control") }}
-      <br>
-      {{ render_field(form.area, class_="form-control") }}
-      <br>
-      {{ render_field(form.building_type, class_="form-control") }}
-      <br>
-      {{ render_field(form.floor, class_="form-control") }}
-      <br>
-      {{ render_field(form.ceiling_height, class_="form-control") }} -->
     </div>
-    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
-  </form>
-{% endblock %}
+    <p><input class="btn btn-primary" type="submit" value="Submit" onclick="submitResult()"></p>
+    <div id="house_price">
+      <span id="price"></span>
+    </div>
+    </div>
+    <div class="evalhome">
+      <img src="https://i.pinimg.com/originals/51/4c/4f/514c4f3a891ffc51439d20dc145f7563.gif">
+    </div>
+    </div>
+
+    <style>
+      .opt{
+        display: flex;
+        flex-direction: row;
+      }
+      .params{
+        padding: 5px;
+        font-size: 1.1em;
+      }
+      .opt > div > div > small{
+        font-size: 1.4em;
+      }
+      #price{
+        font-size: 2em;
+        text-decoration: underline;
+        text-decoration-color: red;
+      }
+      #house_price{
+        position: absolute;
+        visibility: hidden;
+        margin-top: 8em;
+      }
+      .evalhome > img{
+        height: 90%;
+        width: 90%;
+        margin-left: 13em;
+        margin-top: -9em;
+      }
+    </style>
+
+    <script>
+      var district = document.getElementById("district");
+      var street = document.getElementById("street");
+      var maxFloor = document.getElementById("max_floor");
+      var buildingType = document.getElementById("building_type");
+      var areas = document.getElementById("areas");
+      var condition = document.getElementById("condition");
+      var floor = document.getElementById("floor");
+      var numRooms = document.getElementById("num_rooms");
+      var ceilingHeight = document.getElementById("ceiling_height");
+
+function submitResult(){
+  $.ajax({
+    url: "/evaluation", 
+    type: "POST",
+    dataType: "json",
+    contentType: "application/json",
+    data: JSON.stringify({
+      "district" : district.options[district.selectedIndex].value,
+      "street" : street.options[street.selectedIndex].value,
+      "maxFloor" : maxFloor.options[maxFloor.selectedIndex].value,
+      "buildingType" : buildingType.options[buildingType.selectedIndex].value,
+      "areas" : areas.options[areas.selectedIndex].value,
+      "condition" : condition.options[condition.selectedIndex].value,
+      "floor" : floor.options[floor.selectedIndex].value,
+      "numRooms" : numRooms.options[numRooms.selectedIndex].value,
+      "ceilingHeight" : ceilingHeight.options[ceilingHeight.selectedIndex].value
+    }),
+    success: function(result){
+      console.log(result);
+      document.getElementById("house_price").style.visibility = "visible";
+      document.getElementById("price").textContent = result;
+    },
+    error: function(e) {
+      console.log(e);
+    }
+  });
+}
+    </script>
+{% endblock %}  
